@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="242dp"
+        android:layout_height="263dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/bg_exit_dialog_tips" />
+
+        <TextView
+            android:id="@+id/tv_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="还有20金币可以获得\n还要再玩一会吗？"
+            android:textColor="#FDFDFC"
+            android:textSize="15dp" />
+
+
+        <TextView
+            android:id="@+id/tv_ok"
+            android:layout_width="190dp"
+            android:layout_height="37dp"
+            android:layout_above="@+id/tv_give_up"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_dialog_exit_tips_btn"
+            android:gravity="center"
+            android:text="再玩一会"
+            android:textColor="#FF000B"
+            android:textSize="16dp" />
+
+        <TextView
+            android:id="@+id/tv_give_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:paddingBottom="30dp"
+            android:text="放弃奖励"
+            android:textColor="#FFF000"
+            android:textSize="12dp" />
+    </RelativeLayout>
+</FrameLayout>

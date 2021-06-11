@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <ImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="15dp"
+        android:src="@mipmap/icon_task_five" />
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginRight="15dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="测试这个是标题"
+            android:textColor="#111111"
+            android:textSize="15dp" />
+
+        <View
+            android:id="@+id/view_progress"
+            android:layout_width="match_parent"
+            android:layout_height="11dp"
+            android:layout_below="@id/tv_title"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_progress" />
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginRight="17.5dp"
+        android:background="@drawable/bg_item_task_finish" />
+
+</LinearLayout>

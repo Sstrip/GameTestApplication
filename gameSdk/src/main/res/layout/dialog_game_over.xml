@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <FrameLayout
+        android:id="@+id/fl_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/bg_dialog_game_over">
+
+        <RelativeLayout
+            android:id="@+id/rl_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="190dp">
+
+            <ImageView
+                android:layout_width="230dp"
+                android:layout_height="115dp"
+                android:layout_centerInParent="true"
+                android:background="@mipmap/bg_game_over" />
+
+            <RelativeLayout
+                android:id="@+id/rl_ad_content"
+                android:layout_width="282dp"
+                android:layout_height="180dp"
+                android:layout_centerHorizontal="true" />
+
+        </RelativeLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_close"
+        android:layout_width="26.5dp"
+        android:layout_height="26.5dp"
+        android:layout_alignRight="@id/fl_content"
+        android:layout_marginTop="100dp"
+        android:background="@drawable/bg_dialog_close"
+        android:gravity="center"
+        android:text="X" />
+
+
+    <TextView
+        android:id="@+id/tv_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fl_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="18.5dp"
+        android:background="@mipmap/bg_btn_game_level_finish"
+        android:gravity="center"
+        android:textColor="#D23201"
+        android:textSize="17dp" />
+</RelativeLayout>

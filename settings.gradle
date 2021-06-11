@@ -1,0 +1,3 @@
+include ':gameSdk'
+include ':app'
+rootProject.name = "GameTestApplication"
