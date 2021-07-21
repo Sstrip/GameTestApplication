@@ -31,7 +31,7 @@ public class Task {
      */
     private String endVersion;
     /**
-     * 完成状态0未完成1完成未领取2已领取
+     * 完成状态 0未完成1完成未领取2已领取
      */
     private String finish;
     private int limitNum;
@@ -50,6 +50,19 @@ public class Task {
      * 广告数据相关配置
      */
     private AdConfigInfo adConfig;
+
+    /**
+     * 红包提示语
+     */
+    private String taskMsg;
+
+    public String getTaskMsg() {
+        return taskMsg;
+    }
+
+    public void setTaskMsg(String taskMsg) {
+        this.taskMsg = taskMsg;
+    }
 
     public AdConfigInfo getAdConfig() {
         return adConfig;

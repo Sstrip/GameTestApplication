@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rl_day_tab"
+    android:layout_width="80dp"
+    android:layout_height="40dp"
+    android:layout_margin="3dp"
+    android:background="@drawable/bg_sign_day_tab">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="第一天"
+        android:textColor="#a85231" />
+
+    <ImageView
+        android:id="@+id/iv_lock"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:src="@mipmap/icon_lock" />
+</RelativeLayout>

@@ -40,7 +40,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/fl_head"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="15dp"
+        android:paddingRight="10dp"
         android:background="@mipmap/bg_home_btn"
         android:visibility="gone">
 
@@ -50,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
-            android:src="@mipmap/icon_red_bag" />
+            android:src="@mipmap/icon_coin_main" />
 
         <TextView
             android:id="@+id/tv_redbag_count"
@@ -71,6 +72,7 @@
         android:layout_marginLeft="10dp"
         android:layout_toRightOf="@id/rl_red_bag"
         android:background="@mipmap/bg_home_btn"
+        android:paddingRight="10dp"
         android:visibility="gone">
 
         <ImageView
@@ -79,7 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
-            android:src="@mipmap/icon_coin" />
+            android:src="@mipmap/icon_store" />
 
         <TextView
             android:id="@+id/tv_coin_count"
@@ -92,26 +94,6 @@
             android:textSize="16dp" />
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/iv_award"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="180dp"
-        android:layout_marginRight="5dp"
-        android:src="@mipmap/icon_main_award"
-        android:visibility="gone" />
-
-    <ImageView
-        android:id="@+id/iv_tips"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_alignTop="@+id/iv_award"
-        android:layout_alignRight="@id/iv_award"
-        android:layout_marginTop="-5dp"
-        android:layout_marginRight="-5dp"
-        android:src="@mipmap/icon_main_tips"
-        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/rl_ad_bottom"
@@ -126,10 +108,64 @@
         android:layout_marginTop="300dp"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/tv_test_log"
-        android:layout_width="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_height="wrap_content" />
+    <ImageView
+        android:id="@+id/iv_sign_in"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="100dp"
+        android:src="@mipmap/icon_sign_in"
+        android:visibility="gone" />
+    <!--常驻红包-->
+    <ImageView
+        android:id="@+id/iv_red_packager"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/iv_sign_in"
+        android:layout_marginTop="20dp"
+        android:src="@mipmap/icon_red_package"
+        android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/tv_cut_down_time"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/iv_red_packager"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:textSize="12dp" />
+
+    <ImageView
+        android:id="@+id/iv_award"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/iv_red_packager"
+        android:layout_marginTop="20dp"
+        android:src="@mipmap/icon_main_award"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/iv_tips"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_alignTop="@+id/iv_award"
+        android:layout_alignRight="@id/iv_award"
+        android:layout_marginTop="-5dp"
+        android:layout_marginRight="-5dp"
+        android:src="@mipmap/icon_main_tips"
+        android:visibility="gone" />
+    <!--兑换-->
+    <ImageView
+        android:id="@+id/iv_convert"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/iv_award"
+        android:layout_marginTop="20dp"
+        android:src="@mipmap/icon_convert"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/iv_reward_coin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
 </RelativeLayout>

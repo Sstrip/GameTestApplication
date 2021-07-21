@@ -18,7 +18,19 @@ public class UserInfo {
     private String createTime;
     private int id;
     private long total;
+    /**
+     * 金币数
+     */
+    private long remain;
     private String thirdUserId;
+
+    public long getRemain() {
+        return remain;
+    }
+
+    public void setRemain(long remain) {
+        this.remain = remain;
+    }
 
     public String getChannel() {
         return channel;

@@ -31,6 +31,11 @@ public class UserTimeUtil {
      * 用户游戏时长
      */
     private long userTime = 0;
+
+    /**
+     * 本次游戏的倒计时时长
+     */
+    private long currentTime = 0;
     /**
      * 日期格式化
      */
@@ -45,6 +50,12 @@ public class UserTimeUtil {
     private TimeDownCallBack taskTimeCallBack;
 
     /**
+     * 签到红包可领取的时间
+     */
+    private long signCanRewardTime = 0;
+
+
+    /**
      * 计时handler
      */
     private Handler handler = new Handler() {
@@ -52,6 +63,11 @@ public class UserTimeUtil {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             userTime = userTime + 1000;
+            currentTime = currentTime + 1000;
+            if (signCanRewardTime != 0) {
+//              签到红包可领取时间倒计时
+                signCanRewardTime = signCanRewardTime - 1000;
+            }
             Map<Long, TimeMessage> temp = new HashMap(callBackMap);
             for (Map.Entry<Long, TimeMessage> entry : temp.entrySet()) {
                 long time = System.currentTimeMillis() - entry.getValue().getLastTime();
@@ -62,6 +78,7 @@ public class UserTimeUtil {
                     entry.getValue().getCallBack().onCall();
                 }
             }
+
             if (taskTimeCallBack != null) {
                 //间隔1s回调
                 taskTimeCallBack.onCall();
@@ -82,6 +99,16 @@ public class UserTimeUtil {
     public long getUserTimer() {
         return userTime;
     }
+
+    /**
+     * 返回本次游戏的时长
+     *
+     * @return
+     */
+    public long getCurrentAppTime() {
+        return currentTime;
+    }
+
 
     /**
      * 初始化用户时长
@@ -132,6 +159,24 @@ public class UserTimeUtil {
     }
 
     /**
+     * 移除监听回调
+     *
+     * @param callBack
+     */
+    public void removeTimeCallBack(TimeCallBack callBack) {
+        if (callBackMap.isEmpty() || callBack == null) {
+            return;
+        }
+        Map<Integer, TimeMessage> temp = new HashMap(callBackMap);
+        for (Map.Entry<Integer, TimeMessage> entry : temp.entrySet()) {
+            if (entry.getValue().equals(callBack)) {
+                callBackMap.remove(entry.getKey());
+            }
+        }
+    }
+
+
+    /**
      * 设置时长回调
      *
      * @param taskTimeCallBack
@@ -139,6 +184,41 @@ public class UserTimeUtil {
     public void setTimeDownCutCallBack(TimeDownCallBack taskTimeCallBack) {
         this.taskTimeCallBack = taskTimeCallBack;
     }
+
+    /**
+     * 设置签到红包可点击的时间
+     *
+     * @param signCanRewardTime
+     */
+    public void setSignCanRewardTime(long signCanRewardTime) {
+        this.signCanRewardTime = signCanRewardTime;
+    }
+
+
+    /**
+     * 获取签到红包的倒计时时间
+     *
+     * @return
+     */
+    public String getSignCutDownTime() {
+        if (signCanRewardTime == 0) {
+            return "";
+        }
+        int miniter = (int) (signCanRewardTime / 1000 / 60);
+        int second = (int) (signCanRewardTime / 1000 % 60);
+        String cutDownTime = (miniter >= 10 ? String.valueOf(miniter) : "0" + miniter) + ":" + (second >= 10 ? String.valueOf(second) : "0" + second);
+        return cutDownTime;
+    }
+
+
+    /**
+     * 返回签到倒计时的秒数
+     * @return
+     */
+    public long getSignCutDownTimeBySeconds(){
+        return signCanRewardTime;
+    }
+
 
 
     /**

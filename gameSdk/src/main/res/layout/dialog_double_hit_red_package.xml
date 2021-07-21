@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal">
+
+    <RelativeLayout
+        android:id="@+id/rl_red_package"
+        android:layout_width="221dp"
+        android:layout_height="276dp"
+        android:layout_centerHorizontal="true"
+        android:background="@mipmap/bg_dialog_doubel_hit_red_package">
+
+        <ImageView
+            android:id="@+id/iv_coin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="38dp"
+            android:src="@mipmap/icon_coin" />
+
+        <TextView
+            android:id="@+id/tv_coin_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/iv_coin"
+            android:layout_centerHorizontal="true"
+            android:textColor="#FFFFFF"
+            android:textSize="30dp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/iv_open"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:src="@mipmap/icon_red_pack_tips"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/iv_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/tv_ad_tips"
+            android:layout_centerHorizontal="true"
+            android:src="@mipmap/icon_red_pack_open" />
+
+        <TextView
+            android:id="@+id/tv_ad_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:text="看广告领红包"
+            android:textColor="#FFFFFF"
+            android:textSize="22dp" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/lin_get_coin"
+        android:layout_width="221dp"
+        android:layout_height="276dp"
+        android:layout_centerHorizontal="true"
+        android:background="@mipmap/bg_dialog_doubel_hit_red_package_get"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:text="恭喜获得"
+            android:textColor="#d73236"
+            android:textSize="30dp" />
+
+        <TextView
+            android:id="@+id/tv_get_coin_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="15dp"
+            android:text="556金币"
+            android:textColor="#d73236"
+            android:textSize="40dp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:src="@mipmap/icon_coin" />
+
+        <TextView
+            android:id="@+id/tv_get_coin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="50dp"
+            android:background="@mipmap/icon_btn_dialog"
+            android:gravity="center"
+            android:text="领取"
+            android:textColor="#7b3e0f"
+            android:textSize="20dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/iv_close"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginRight="-20dp"
+        android:layout_marginTop="-20dp"
+         android:layout_alignRight="@+id/rl_red_package"
+        android:background="@drawable/bg_dialog_close_no_time"
+        android:gravity="center"
+        android:text="3"
+        android:textSize="18dp" />
+</RelativeLayout>

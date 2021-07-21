@@ -26,6 +26,18 @@ public class AdConfigInfo {
      */
     public static final int LOCATION_RED_BAG = 3;
     /**
+     * 两分钟的插屏广告
+     */
+    public static final int LOCATION_INSERT_AD = 9;
+    /**
+     * 常驻红包广告
+     */
+    public static final int LOCATION_PERMANENT_RED_PACKAGE = 10;
+    /**
+     * 红包领取结束弹窗广告
+     */
+    public static final int LOCATION_GET_RED_PACKAGE = 12;
+    /**
      * 广告平台sgm
      */
     public static final String PLAT_SGM = "1";

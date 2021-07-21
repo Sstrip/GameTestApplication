@@ -18,8 +18,11 @@ import com.sigmob.windad.WindAds;
 import com.ss.gamesdk.activity.SdkMainActivity;
 import com.ss.gamesdk.bean.AdConfigInfo;
 import com.ss.gamesdk.bean.ApiResultData;
+import com.ss.gamesdk.bean.GrowingWrapTask;
 import com.ss.gamesdk.bean.Task;
+import com.ss.gamesdk.bean.WrapAdConfigInfo;
 import com.ss.gamesdk.http.NetApi;
+import com.ss.gamesdk.utils.EventUtil;
 import com.ss.gamesdk.utils.UserTimeUtil;
 import com.tencent.smtt.export.external.TbsCoreSettings;
 import com.tencent.smtt.sdk.QbSdk;
@@ -78,16 +81,38 @@ public class GameSdk {
     /**
      * banner的广告配置实体
      */
-    private AdConfigInfo bannerAdInfo;
+    private WrapAdConfigInfo bannerAdInfo;
+
     /**
      * 激励视频广告实体
      */
-    private AdConfigInfo rewardVideoAdInfo;
+    private WrapAdConfigInfo rewardVideoAdInfo;
     /**
      * 红包激励视频广告
      */
-    private AdConfigInfo redBagVideoAdInfo;
+    private WrapAdConfigInfo redBagVideoAdInfo;
+    /**
+     * 本地红包的广告
+     */
+    private WrapAdConfigInfo localRedPackageAdInfo;
+    /**
+     * 插屏广告
+     */
+    private WrapAdConfigInfo insertAdInfo;
 
+    /**
+     * 领取红包奖励的广告
+     */
+    private WrapAdConfigInfo getRedPackageAdInfo;
+
+    /**
+     * 成长任务的时间间隔
+     */
+    private int growingTaskTimeSpace;
+    /**
+     * 原子币兑换回调
+     */
+    private OnCoverFinishListener listener;
     /**
      * 安全联盟
      */
@@ -99,6 +124,25 @@ public class GameSdk {
         }
         return gameSdk;
     }
+
+    /**
+     * 设置当兑换原子币回调
+     *
+     * @param listener
+     */
+    public void setOnCoverFinishListener(OnCoverFinishListener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * 获取原子币回调
+     *
+     * @return
+     */
+    public OnCoverFinishListener getCoverFinishListener() {
+        return listener;
+    }
+
 
     /**
      * 获取成长任务列表
@@ -119,16 +163,29 @@ public class GameSdk {
         return userKey;
     }
 
+    /**
+     * 获取成长任务的时间间隔
+     *
+     * @return
+     */
+    public int getGrowingTaskTimeSpace() {
+        return growingTaskTimeSpace;
+    }
+
 
     /**
      * 初始化
      *
-     * @param context
+     * @param context 上下文
+     * @param userKey 用户标识
+     * @param channel 渠道
      */
     public void init(Activity context, String userKey, String channel) {
         getInstance().context = context.getApplicationContext();
         getInstance().userKey = userKey;
         getInstance().channel = channel;
+        EventUtil.get().init(context);
+
         //拉取数据接口
         initAdConfig(context);
 
@@ -136,11 +193,12 @@ public class GameSdk {
         NetApi.getGrowList(channel, GameSdk.getInstance().getUserKey(),
                 String.valueOf(UserTimeUtil.getInstance().getUserTimer() / (60 * 1000))).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<ApiResultData<List<Task>>>() {
+                .subscribe(new Action1<ApiResultData<GrowingWrapTask>>() {
                     @Override
-                    public void call(ApiResultData<List<Task>> listApiResultData) {
+                    public void call(ApiResultData<GrowingWrapTask> listApiResultData) {
                         Log.e("打印成长任务回调", listApiResultData.getData().toString());
-                        getInstance().tasks = listApiResultData.data;
+                        getInstance().tasks = listApiResultData.data.getTaskList();
+                        growingTaskTimeSpace = listApiResultData.data.getInterval();
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -160,21 +218,33 @@ public class GameSdk {
     private void initAdConfig(Activity context) {
         NetApi.getAdConfig(channel).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<ApiResultData<List<AdConfigInfo>>>() {
+                .subscribe(new Action1<ApiResultData<List<WrapAdConfigInfo>>>() {
                     @Override
-                    public void call(ApiResultData<List<AdConfigInfo>> listApiResultData) {
+                    public void call(ApiResultData<List<WrapAdConfigInfo>> listApiResultData) {
                         //拉取到广告的配置数据
-                        for (AdConfigInfo info : listApiResultData.data) {
+                        for (WrapAdConfigInfo info : listApiResultData.data) {
                             Log.e("打印广告相关", info.toString());
                             if (info.getLocation() == AdConfigInfo.LOCATION_BANNER) {
                                 //banner广告数据
                                 bannerAdInfo = info;
+                                gdtAppID = bannerAdInfo.getAdList().get(0).getAdPlatformInfo().getYlhAppid();
+                                otherAppID = bannerAdInfo.getAdList().get(0).getAdPlatformInfo().getSgmAppid();
+                                otherAppKey = bannerAdInfo.getAdList().get(0).getAdPlatformInfo().getSgmAppkey();
                             } else if (info.getLocation() == AdConfigInfo.LOCATION_REWARD_VIDEO) {
                                 //激励视频数据
                                 rewardVideoAdInfo = info;
                             } else if (info.getLocation() == AdConfigInfo.LOCATION_RED_BAG) {
                                 //红包激励视频广告
                                 redBagVideoAdInfo = info;
+                            } else if (info.getLocation() == AdConfigInfo.LOCATION_INSERT_AD) {
+                                // 两分钟的插屏广告
+                                insertAdInfo = info;
+                            } else if (info.getLocation() == AdConfigInfo.LOCATION_PERMANENT_RED_PACKAGE) {
+                                //常驻红包广告
+                                localRedPackageAdInfo = info;
+                            } else if (info.getLocation() == AdConfigInfo.LOCATION_GET_RED_PACKAGE) {
+                                //红包领取奖励后的广告
+                                getRedPackageAdInfo = info;
                             }
                         }
                         //初始化广告sdk
@@ -196,7 +266,18 @@ public class GameSdk {
      * @return
      */
     public AdConfigInfo getBannerAdInfo() {
-        return bannerAdInfo;
+        if (bannerAdInfo == null || bannerAdInfo.getAdList() == null) {
+            return null;
+        }
+        int tempCurrent = bannerAdInfo.getCurrentPosition();
+        if (tempCurrent >= bannerAdInfo.getAdList().size() - 1) {
+            bannerAdInfo.setCurrentPosition(0);
+            return bannerAdInfo.getAdList().get(0);
+        }
+        AdConfigInfo info = bannerAdInfo.getAdList().get(tempCurrent);
+        tempCurrent++;
+        bannerAdInfo.setCurrentPosition(tempCurrent);
+        return info;
     }
 
     /**
@@ -205,7 +286,18 @@ public class GameSdk {
      * @return
      */
     public AdConfigInfo getRewardVideoAdInfo() {
-        return rewardVideoAdInfo;
+        if (rewardVideoAdInfo == null || rewardVideoAdInfo.getAdList() == null) {
+            return null;
+        }
+        int tempCurrent = rewardVideoAdInfo.getCurrentPosition();
+        if (tempCurrent >= rewardVideoAdInfo.getAdList().size() - 1) {
+            rewardVideoAdInfo.setCurrentPosition(0);
+            return rewardVideoAdInfo.getAdList().get(0);
+        }
+        AdConfigInfo info = rewardVideoAdInfo.getAdList().get(tempCurrent);
+        tempCurrent++;
+        rewardVideoAdInfo.setCurrentPosition(tempCurrent);
+        return info;
     }
 
     /**
@@ -214,7 +306,88 @@ public class GameSdk {
      * @return
      */
     public AdConfigInfo getRedBagVideoAdInfo() {
-        return redBagVideoAdInfo;
+        if (redBagVideoAdInfo == null || rewardVideoAdInfo.getAdList() == null) {
+            return null;
+        }
+        int tempCurrent = redBagVideoAdInfo.getCurrentPosition();
+        if (tempCurrent >= redBagVideoAdInfo.getAdList().size() - 1) {
+            redBagVideoAdInfo.setCurrentPosition(0);
+            return redBagVideoAdInfo.getAdList().get(0);
+        }
+        AdConfigInfo info = redBagVideoAdInfo.getAdList().get(tempCurrent);
+        tempCurrent++;
+        redBagVideoAdInfo.setCurrentPosition(tempCurrent);
+        return info;
+    }
+
+    /**
+     * 本地常驻红包广告
+     *
+     * @return
+     */
+    public AdConfigInfo getLocalRedPackageAdInfo() {
+        if (localRedPackageAdInfo == null || localRedPackageAdInfo.getAdList() == null) {
+            return null;
+        }
+        int tempCurrent = localRedPackageAdInfo.getCurrentPosition();
+        if (tempCurrent >= localRedPackageAdInfo.getAdList().size() - 1) {
+            localRedPackageAdInfo.setCurrentPosition(0);
+            return localRedPackageAdInfo.getAdList().get(0);
+        }
+        AdConfigInfo info = localRedPackageAdInfo.getAdList().get(tempCurrent);
+        tempCurrent++;
+        localRedPackageAdInfo.setCurrentPosition(tempCurrent);
+        return info;
+    }
+
+    /**
+     * 插屏广告
+     *
+     * @return
+     */
+    public AdConfigInfo getInsertAdInfo() {
+        if (insertAdInfo == null || insertAdInfo.getAdList() == null) {
+            return null;
+        }
+        int tempCurrent = insertAdInfo.getCurrentPosition();
+        if (tempCurrent >= insertAdInfo.getAdList().size() - 1) {
+            insertAdInfo.setCurrentPosition(0);
+            return insertAdInfo.getAdList().get(0);
+        }
+        AdConfigInfo info = insertAdInfo.getAdList().get(tempCurrent);
+        tempCurrent++;
+        insertAdInfo.setCurrentPosition(tempCurrent);
+        return info;
+    }
+
+    /**
+     * 获取红包奖励后的广告实体
+     *
+     * @return 广告实体
+     */
+    public AdConfigInfo getRedPackageRewardAdInfo() {
+        if (getRedPackageAdInfo == null || getRedPackageAdInfo.getAdList() == null) {
+            return null;
+        }
+        int tempCurrent = getRedPackageAdInfo.getCurrentPosition();
+        if (tempCurrent >= getRedPackageAdInfo.getAdList().size() - 1) {
+            getRedPackageAdInfo.setCurrentPosition(0);
+            return getRedPackageAdInfo.getAdList().get(0);
+        }
+        AdConfigInfo info = getRedPackageAdInfo.getAdList().get(tempCurrent);
+        tempCurrent++;
+        getRedPackageAdInfo.setCurrentPosition(tempCurrent);
+        return info;
+    }
+
+
+    /**
+     * 获取广点通appID
+     *
+     * @return
+     */
+    public String gdtAppID() {
+        return gdtAppID;
     }
 
 
@@ -237,8 +410,9 @@ public class GameSdk {
     private void initGDTsdk() {
         // 通过调用此方法初始化 SDK。如果需要在多个进程拉取广告，每个进程都需要初始化 SDK。
 //        GDTADManager.getInstance().initWith(context, "1110313053");
-        if (bannerAdInfo != null) {
-            GDTADManager.getInstance().initWith(context, bannerAdInfo.getAdPlatformInfo().getYlhAppid());
+        if (bannerAdInfo != null || bannerAdInfo.getAdList() != null) {
+
+            GDTADManager.getInstance().initWith(context, gdtAppID);
             // 在调用TBS初始化、创建WebView之前进行如下配置
             HashMap map = new HashMap();
             map.put(TbsCoreSettings.TBS_SETTINGS_USE_SPEEDY_CLASSLOADER, true);
@@ -258,7 +432,7 @@ public class GameSdk {
 
         //useMediation:true代表使用聚合服务;false:代表单接SigMob
 //        ads.startWithOptions(context, new WindAdOptions("9390", "fe06847d3729d1f5", true));
-        ads.startWithOptions(context, new WindAdOptions(bannerAdInfo.getAdPlatformInfo().getSgmAppid(), bannerAdInfo.getAdPlatformInfo().getSgmAppkey(), false));
+        ads.startWithOptions(context, new WindAdOptions(otherAppID, otherAppKey, false));
 
         //主动READ_PHONE_STATE，WRITE_EXTERNAL_STORAGE，ACCESS_FINE_LOCATION 权限授权请求
         WindAds.requestPermission(context);
@@ -333,4 +507,12 @@ public class GameSdk {
     public String getOAID() {
         return idSupplier == null ? "" : idSupplier.getOAID();
     }
+
+    /**
+     * 原子币兑换成功的回调
+     */
+    public interface OnCoverFinishListener {
+        void onFinish(boolean success);
+    }
+
 }

@@ -52,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
                 GameSdk.getInstance().showGamePage(MainActivity.this);
             }
         });
+        GameSdk.getInstance().setOnCoverFinishListener(new GameSdk.OnCoverFinishListener() {
+            @Override
+            public void onFinish(boolean success) {
+                //回调兑换成功
+            }
+        });
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -77,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 请求权限
      */
-    private void questPermission(){
-        String[] permissionString={Manifest.permission.READ_PHONE_STATE};
+    private void questPermission() {
+        String[] permissionString = {Manifest.permission.READ_PHONE_STATE};
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(this, permissionString, 0);
         }

@@ -1,5 +1,8 @@
 package com.ss.gamesdk.weidgt;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Handler;
@@ -43,10 +46,11 @@ public class GameOverDialog extends Dialog {
      * 点击事件
      */
     private View.OnClickListener listener;
+    private AnimatorSet animatorSet;
 
 
     public GameOverDialog(@NonNull Context context) {
-        super(context,R.style.BaseDialog);
+        super(context, R.style.BaseDialog);
         initView(context);
     }
 
@@ -68,8 +72,34 @@ public class GameOverDialog extends Dialog {
                 dismiss();
             }
         });
-
+        startAnim(tvButton);
     }
+
+
+    /**
+     * 邀请按钮呼吸效果
+     */
+    private void startAnim(View view) {
+        //组合动画
+        if (animatorSet == null) {
+            animatorSet = new AnimatorSet();
+            //后几个参数是放大的倍数
+            ObjectAnimator scaleX = ObjectAnimator.ofFloat(view, "scaleX", 1, 1.1f, 1);
+            ObjectAnimator scaleY = ObjectAnimator.ofFloat(view, "scaleY", 1, 1.1f, 1);
+            //永久循环
+            scaleX.setRepeatCount(ValueAnimator.INFINITE);
+            scaleY.setRepeatCount(ValueAnimator.INFINITE);
+            //时间
+            animatorSet.setDuration(600);
+            //两个动画同时开始
+            animatorSet.play(scaleX).with(scaleY);
+        }
+        if (!animatorSet.isRunning()) {
+            //开始
+            animatorSet.start();
+        }
+    }
+
 
     /**
      * 展示游戏结束弹窗
@@ -86,7 +116,7 @@ public class GameOverDialog extends Dialog {
             //展示默认占位图
 
         } else {
-            AdUtils.getInstance(getContext()).loadGdtNativeExpressAd(getContext(),250, adID, rlAdContent);
+            AdUtils.getInstance(getContext()).loadGdtNativeExpressAd(getContext(), 250, adID, rlAdContent);
 //            AdUtils.getInstance(getContext()).loadGdtNativeExpressAd(getContext(), "9011684347965344", rlAdContent);
         }
     }

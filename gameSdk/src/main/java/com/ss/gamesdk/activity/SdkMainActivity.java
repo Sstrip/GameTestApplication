@@ -3,6 +3,7 @@ package com.ss.gamesdk.activity;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,26 +21,42 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.qq.e.ads.rewardvideo2.ExpressRewardVideoAD;
 import com.sigmob.windad.WindAds;
 import com.sigmob.windad.rewardedVideo.WindRewardedVideoAd;
 import com.ss.gamesdk.R;
 import com.ss.gamesdk.base.GameSdk;
 import com.ss.gamesdk.bean.AdConfigInfo;
+import com.ss.gamesdk.bean.AdRewardVideoInfo;
 import com.ss.gamesdk.bean.ApiResultData;
+import com.ss.gamesdk.bean.RewardInfo;
 import com.ss.gamesdk.bean.Task;
 import com.ss.gamesdk.bean.UserInfo;
 import com.ss.gamesdk.http.NetApi;
+import com.ss.gamesdk.http.NetUtil;
 import com.ss.gamesdk.utils.AdUtils;
 import com.ss.gamesdk.utils.DensityUtil;
+import com.ss.gamesdk.utils.EventUtil;
 import com.ss.gamesdk.utils.RewardVideoUtils;
 import com.ss.gamesdk.utils.UserTimeUtil;
+import com.ss.gamesdk.weidgt.CoinConvertDialog;
+import com.ss.gamesdk.weidgt.CompoundPropTipsDialog;
+import com.ss.gamesdk.weidgt.DoubleHitRedPackageDialog;
 import com.ss.gamesdk.weidgt.ExitTipsDialog;
 import com.ss.gamesdk.weidgt.FunctionClickDialog;
 import com.ss.gamesdk.weidgt.GameLevelFinishDialog;
 import com.ss.gamesdk.weidgt.GameOverDialog;
 import com.ss.gamesdk.weidgt.GrowTaskDialog;
 import com.ss.gamesdk.weidgt.InsertAdDialog;
+import com.ss.gamesdk.weidgt.SignDialog;
+import com.ss.gamesdk.weidgt.TreasureBoxDialog;
 import com.ss.gamesdk.weidgt.UserLeadDialog;
 import com.tencent.smtt.sdk.CookieManager;
 import com.tencent.smtt.sdk.CookieSyncManager;
@@ -49,6 +66,7 @@ import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,10 +152,49 @@ public class SdkMainActivity extends AppCompatActivity {
      * 金币容器
      */
     private RelativeLayout rlCoin;
+
     /**
-     * 日志view
+     * 常驻红包
      */
-    private TextView tvLog;
+    private ImageView ivLocalRedPackage;
+    /**
+     * 签到
+     */
+    private ImageView ivSign;
+    /**
+     * 兑换
+     */
+    private ImageView ivConvert;
+    /**
+     * 本地红包是否可以点击标识
+     */
+    private boolean canClickLocalRedPackage = true;
+    /**
+     * 当前的激励视频广告索引位置
+     * 仅限于h5调用原生的激励视频广告
+     */
+    private int currentIndexRewardAd = 0;
+    /**
+     * 宝箱的激励视频广告索引
+     */
+    private int currentBoxRewardAd = 0;
+    /**
+     * 道具的数量索引
+     */
+    private int currentPropAd = 0;
+    /**
+     * 本地红包倒计时
+     */
+    private TextView tvLocalRedPackageCutDown;
+
+    /**
+     * 本地红包倒计时
+     */
+    private long localCutDownTime = -1;
+    /**
+     * 获取到金币的gif
+     */
+    private ImageView ivGifRewardCoin;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -157,8 +214,15 @@ public class SdkMainActivity extends AppCompatActivity {
         tvTitle = findViewById(R.id.tv_title);
         tvRedBag = findViewById(R.id.tv_redbag_count);
         tvCoin = findViewById(R.id.tv_coin_count);
-        tvLog = findViewById(R.id.tv_test_log);
+        ivSign = findViewById(R.id.iv_sign_in);
+        ivLocalRedPackage = findViewById(R.id.iv_red_packager);
+        ivConvert = findViewById(R.id.iv_convert);
+        tvLocalRedPackageCutDown = findViewById(R.id.tv_cut_down_time);
+        ivGifRewardCoin = findViewById(R.id.iv_reward_coin);
 
+        Glide.with(this).asGif().load(R.drawable.icon_red_package).into(ivLocalRedPackage);
+        Glide.with(this).asGif().load(R.drawable.icon_sign_in).into(ivSign);
+        Glide.with(this).asGif().load(R.drawable.icon_main_award).into(ivAward);
 
 
         setWebView();
@@ -176,6 +240,7 @@ public class SdkMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //点击奖励按钮
+                showLocalInsertAd();
                 GrowTaskDialog dialog = new GrowTaskDialog(SdkMainActivity.this);
                 dialog.showGrowTaskDialog(GameSdk.getInstance().getGrowTasks());
                 dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -213,50 +278,8 @@ public class SdkMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //点击红包
-                if (GameSdk.getInstance().getRedBagVideoAdInfo() == null) {
-                    return;
-                }
-                if (AdConfigInfo.PLAT_GDT.equals(GameSdk.getInstance().getRedBagVideoAdInfo().getChannel())) {
-                    //广点通广告
-                    AdUtils.getInstance(SdkMainActivity.this).loadRewardVideoAD(GameSdk.getInstance().
-                                    getRedBagVideoAdInfo().getAdPlatformInfo().getYlhAppid(),
-                            GameSdk.getInstance().getRedBagVideoAdInfo().getBundleid(), new RewardVideoUtils.OnVideoAdListener() {
-                                @Override
-                                public void onVideoFinish() {
-
-                                }
-
-                                @Override
-                                public void onVideoClose() {
-//                                    getAward(GameSdk.getInstance().
-//                                            getRedBagVideoAdInfo());
-                                }
-
-                                @Override
-                                public void onVideoLoaded(Object ad) {
-
-                                }
-                            });
-                } else if (AdConfigInfo.PLAT_SGM.equals(GameSdk.getInstance().getRedBagVideoAdInfo().getChannel())) {
-                    //其他广告平台
-                    AdUtils.getInstance(SdkMainActivity.this).loadOtherRewardVideoAD(SdkMainActivity.this,
-                            GameSdk.getInstance().getRedBagVideoAdInfo().getBundleid(), new RewardVideoUtils.OnVideoAdListener<WindRewardedVideoAd>() {
-                                @Override
-                                public void onVideoFinish() {
-
-                                }
-
-                                @Override
-                                public void onVideoClose() {
-//                                    getAward();
-                                }
-
-                                @Override
-                                public void onVideoLoaded(WindRewardedVideoAd ad) {
-                                    AdUtils.getInstance(SdkMainActivity.this).showOtherRewardVideoAd(SdkMainActivity.this);
-                                }
-                            });
-                }
+                EventUtil.get().addEvent("点击「浮动gif红包点我零钱」按钮");
+                showRewardVideoAd(GameSdk.getInstance().getRedBagVideoAdInfo(), false);
             }
         });
 
@@ -271,7 +294,8 @@ public class SdkMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //点击关闭页面
-                onBackPressed();
+                onBackPressed(true);
+                EventUtil.get().addEvent("点击「左上角退出」按钮");
             }
         });
         NetApi.getUserInfo(GameSdk.getInstance().getChannel(), GameSdk.getInstance().getUserKey())
@@ -281,7 +305,7 @@ public class SdkMainActivity extends AppCompatActivity {
                     @Override
                     public void call(ApiResultData<UserInfo> userInfoApiResultData) {
                         if (userInfoApiResultData.data != null) {
-                            long coin = userInfoApiResultData.data.getTotal();
+                            long coin = userInfoApiResultData.data.getRemain();
                             tvRedBag.setText(String.valueOf(coin));
                         }
                     }
@@ -292,6 +316,179 @@ public class SdkMainActivity extends AppCompatActivity {
 
                     }
                 });
+
+        ivSign.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLocalInsertAd();
+                EventUtil.get().addEvent("点击「签到」按钮");
+                SignDialog signDialog = new SignDialog(SdkMainActivity.this);
+                signDialog.show();
+            }
+        });
+
+        ivLocalRedPackage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (canClickLocalRedPackage) {
+                    canClickLocalRedPackage = false;
+                    EventUtil.get().addEvent("点击「红包」按钮");
+                    showRewardVideoAd(GameSdk.getInstance().getLocalRedPackageAdInfo(), true);
+                } else {
+                    Toast.makeText(SdkMainActivity.this, "红包倒计时中,请等待倒计时结束", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ivConvert.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLocalInsertAd();
+                EventUtil.get().addEvent("点击「兑换」按钮");
+                CoinConvertDialog dialog = new CoinConvertDialog(SdkMainActivity.this);
+                dialog.show();
+            }
+        });
+        //计时两分钟一次调起插屏广告
+        cutDownShowInsertAd();
+        EventUtil.get().addEvent("启动sdk");
+    }
+
+    /**
+     * 展示金币gif
+     */
+    private void showGetRewardCoinGif() {
+        ivGifRewardCoin.setVisibility(View.VISIBLE);
+        Glide.with(this).asGif().load(R.drawable.get_reward_coin).listener(new RequestListener<GifDrawable>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                return false;
+            }
+
+            @Override
+            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                if (resource instanceof GifDrawable) {
+                    resource.setLoopCount(1);//只播放一次
+                }
+                return false;
+            }
+        }).into(ivGifRewardCoin);
+    }
+
+
+    /**
+     * 展示激励视频广告
+     *
+     * @param configInfo
+     * @param rewardCoin 是否需要领取奖励
+     */
+    private void showRewardVideoAd(AdConfigInfo configInfo, boolean rewardCoin) {
+        if (configInfo == null) {
+            return;
+        }
+        if (AdConfigInfo.PLAT_GDT.equals(configInfo.getChannel())) {
+            //广点通广告
+            AdUtils.getInstance(SdkMainActivity.this).loadRewardVideoAD(configInfo.getAdPlatformInfo().getYlhAppid(),
+                    configInfo.getBundleid(), new RewardVideoUtils.OnVideoAdListener() {
+                        @Override
+                        public void onVideoFinish() {
+
+                        }
+
+                        @Override
+                        public void onVideoClose() {
+                            //todo 获取奖励
+                            if (rewardCoin) {
+                                getAward("61");
+                            }
+                        }
+
+                        @Override
+                        public void onVideoLoaded(Object ad) {
+
+                        }
+                    });
+        } else if (AdConfigInfo.PLAT_SGM.equals(configInfo.getChannel())) {
+            //其他广告平台
+            AdUtils.getInstance(SdkMainActivity.this).loadOtherRewardVideoAD(SdkMainActivity.this,
+                    configInfo.getBundleid(), new RewardVideoUtils.OnVideoAdListener<WindRewardedVideoAd>() {
+                        @Override
+                        public void onVideoFinish() {
+
+                        }
+
+                        @Override
+                        public void onVideoClose() {
+                            //todo 获取奖励
+                            if (rewardCoin) {
+                                getAward("61");
+                            }
+                        }
+
+                        @Override
+                        public void onVideoLoaded(WindRewardedVideoAd ad) {
+                            AdUtils.getInstance(SdkMainActivity.this).showOtherRewardVideoAd(SdkMainActivity.this);
+                        }
+                    });
+        }
+    }
+
+
+    /**
+     * 开始本地红包倒计时
+     */
+    private void startLocalRedPackageCutDownTime() {
+        if (canClickLocalRedPackage) {
+            return;
+        }
+        localCutDownTime = Integer.parseInt(GameSdk.getInstance().getLocalRedPackageAdInfo().getShieldAdTime());
+        UserTimeUtil.getInstance().addTimeCallBack(1000, new UserTimeUtil.TimeCallBack() {
+            @Override
+            public void onCall() {
+                //每秒调用
+                if (localCutDownTime == -1) {
+                    return;
+                }
+                if (localCutDownTime == 0) {
+                    //倒计时结束需要隐藏掉倒计时
+                    tvLocalRedPackageCutDown.setVisibility(View.GONE);
+                    //为0时才可以点击
+                    canClickLocalRedPackage = true;
+                } else {
+                    // 显示倒计时
+                    tvLocalRedPackageCutDown.setVisibility(View.VISIBLE);
+                    localCutDownTime--;
+                    int miniter = (int) (localCutDownTime / 60);
+                    int second = (int) (localCutDownTime % 60);
+                    String cutDownTime = (miniter >= 10 ? String.valueOf(miniter) : "0" + miniter) + ":" + (second >= 10 ? String.valueOf(second) : "0" + second);
+                    tvLocalRedPackageCutDown.setText(cutDownTime);
+                }
+            }
+        });
+    }
+
+
+    /**
+     * 倒计时显示插屏广告
+     */
+    private void cutDownShowInsertAd() {
+        UserTimeUtil.getInstance().addTimeCallBack(1000 * 60 * 2, new UserTimeUtil.TimeCallBack() {
+            @Override
+            public void onCall() {
+                //两分钟展示一次插屏广告
+                showLocalInsertAd();
+            }
+        });
+    }
+
+    /**
+     * 展示插屏广告
+     */
+    private void showLocalInsertAd() {
+        if (GameSdk.getInstance().getInsertAdInfo() == null) {
+            return;
+        }
+        AdUtils.getInstance(SdkMainActivity.this).loadGdtInsertAd(SdkMainActivity.this, GameSdk.getInstance().getInsertAdInfo().getBundleid());
     }
 
 
@@ -306,15 +503,24 @@ public class SdkMainActivity extends AppCompatActivity {
                     false)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<ApiResultData<String>>() {
+                    .subscribe(new Action1<ApiResultData<RewardInfo>>() {
                         @Override
-                        public void call(ApiResultData<String> stringApiResultData) {
-                            Toast.makeText(SdkMainActivity.this, "已领取奖励", Toast.LENGTH_SHORT).show();
+                        public void call(ApiResultData<RewardInfo> stringApiResultData) {
+                            if (stringApiResultData.status == 100) {
+                                //奖励领取
+                                Toast.makeText(SdkMainActivity.this, stringApiResultData.msg, Toast.LENGTH_SHORT).show();
+                                //todo  重置倒计时
+//                                localCutDownTime = Integer.parseInt(GameSdk.getInstance().getLocalRedPackageAdInfo().getShieldAdTime());
+                                startLocalRedPackageCutDownTime();
+                                showGetRewardCoinGif();
+                            } else {
+                                Toast.makeText(SdkMainActivity.this, stringApiResultData.msg, Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }, new Action1<Throwable>() {
                         @Override
                         public void call(Throwable throwable) {
-
+                            Toast.makeText(SdkMainActivity.this, throwable.toString(), Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -428,6 +634,9 @@ public class SdkMainActivity extends AppCompatActivity {
                 ivAward.setVisibility(View.VISIBLE);
                 rlRedBag.setVisibility(View.VISIBLE);
                 rlCoin.setVisibility(View.VISIBLE);
+                ivSign.setVisibility(View.VISIBLE);
+                ivLocalRedPackage.setVisibility(View.VISIBLE);
+                ivConvert.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -452,16 +661,24 @@ public class SdkMainActivity extends AppCompatActivity {
     /**
      * 展示激励视频广告
      *
-     * @param platem 广告平台
-     * @param adID   广告id
-     * @param appID  广告平台的appid
+     * @param adInfo 广告的gson串
      */
     @JavascriptInterface
-    public void showRewardVideo(int platem, String appID, String adID, String functionName) {
-        Log.e("打印调起激励视频广告", platem + "***" + appID + "***" + adID);
+    public void showRewardVideo(String adInfo, String functionName) {
+        Log.e("打印调起激励视频广告", "***" + adInfo);
+        List<AdRewardVideoInfo> tempInfos = new Gson().fromJson(adInfo, new TypeToken<List<AdRewardVideoInfo>>() {
+        }.getType());
+        AdRewardVideoInfo info = tempInfos.get(currentIndexRewardAd);
+        if (currentIndexRewardAd >= tempInfos.size() - 1) {
+            currentIndexRewardAd = 0;
+        } else {
+            currentIndexRewardAd++;
+        }
+        int platem = Integer.parseInt(info.getPlatform());
+        String adID = info.getAdID();
         if (platem == 0) {
             //广点通
-            AdUtils.getInstance(this).loadRewardVideoAD(appID, adID, new RewardVideoUtils.OnVideoAdListener() {
+            AdUtils.getInstance(this).loadRewardVideoAD(GameSdk.getInstance().gdtAppID(), adID, new RewardVideoUtils.OnVideoAdListener() {
                 @Override
                 public void onVideoFinish() {
 
@@ -517,6 +734,130 @@ public class SdkMainActivity extends AppCompatActivity {
             });
         }
     }
+
+    /**
+     * 展示道具弹窗
+     *
+     * @param propName   道具名称
+     * @param propImgUrl 道具的图片url
+     * @param adInfo     广告json
+     */
+    @JavascriptInterface
+    public void showPropDialog(String propName, String propImgUrl, String propId, String adInfo) {
+        //弹出道具弹窗
+        Log.e("打印道具弹窗", "showPropDialog->" + propImgUrl + "--proid->" + propId);
+
+        List<AdRewardVideoInfo> tempInfos = new Gson().fromJson(adInfo, new TypeToken<List<AdRewardVideoInfo>>() {
+        }.getType());
+        AdRewardVideoInfo info = tempInfos.get(currentPropAd);
+        if (currentPropAd >= tempInfos.size() - 1) {
+            currentPropAd = 0;
+        } else {
+            currentPropAd++;
+        }
+        int platform = Integer.parseInt(info.getPlatform());
+        String adID = info.getAdID();
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                CompoundPropTipsDialog dialog = new CompoundPropTipsDialog(SdkMainActivity.this);
+                dialog.show(propName,propImgUrl, platform, 1, adID);
+                dialog.setOnGetPropListener(new CompoundPropTipsDialog.OnGetPropListener() {
+                    @Override
+                    public void onGetProp() {
+                        //获取到道具 todo 调用js交互
+                        webView.evaluateJavascript("javascript:window.sGameFunction.addProp(\"" + propId + "\",\"1\")", new ValueCallback<String>() {
+                            @Override
+                            public void onReceiveValue(String value) {
+                                //获取返回值，如果存在
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * taskCode 任务红包
+     */
+    @JavascriptInterface
+    public void showRedPackageDialog(String taskCode) {
+        //连击水果的红包弹窗
+        Log.e("打印连击水果", "showRedPackageDialog");
+        //todo 通过拉取渊博那接口获取红包的相关数据 再展示红
+        NetApi.getTask(GameSdk.getInstance().getChannel(), GameSdk.getInstance().getUserKey(), taskCode)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<ApiResultData<Task>>() {
+                    @Override
+                    public void call(ApiResultData<Task> taskApiResultData) {
+                        if (taskApiResultData.data != null) {
+                            DoubleHitRedPackageDialog packageDialog = new DoubleHitRedPackageDialog(SdkMainActivity.this);
+                            int coinCount = taskApiResultData.data.getRewardMax();
+                            AdConfigInfo adConfigInfo = taskApiResultData.data.getAdConfig();
+                            String platfirm = adConfigInfo.getChannel();
+                            // 最大金币数提示语
+                            packageDialog.show("最高" + taskApiResultData.data.getRewardMax() + "金币",
+                                    String.valueOf(coinCount), taskCode,
+                                    Integer.parseInt(platfirm), 1,
+                                    adConfigInfo.getBundleid());
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+
+                    }
+                });
+    }
+
+    /**
+     * 展示宝箱弹窗
+     *
+     * @param propName       道具名称
+     * @param treasureImgUrl 道具的图片url地址
+     * @param treasureCount  道具的数量
+     * @param adInfo         广告数据实体
+     * @param clickAdId      点击激励视频的广告id
+     */
+    @JavascriptInterface
+    public void showTreasureBoxDialog(String propName, String treasureImgUrl, String propId, String treasureCount, String adInfo, String clickAdId) {
+        //宝箱弹窗
+        Log.e("打印宝箱弹窗", "showTreasureBoxDialog->" + treasureImgUrl + "-proid->" + propId + "-treasureCount->" + treasureCount + "-clickAdId->" + clickAdId);
+        List<AdRewardVideoInfo> tempInfos = new Gson().fromJson(adInfo, new TypeToken<List<AdRewardVideoInfo>>() {
+        }.getType());
+        AdRewardVideoInfo info = tempInfos.get(currentBoxRewardAd);
+        if (currentBoxRewardAd >= tempInfos.size() - 1) {
+            currentBoxRewardAd = 0;
+        } else {
+            currentBoxRewardAd++;
+        }
+        int platform = Integer.parseInt(info.getPlatform());
+        String adID = info.getAdID();
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                TreasureBoxDialog treasureBoxDialog = new TreasureBoxDialog(SdkMainActivity.this);
+                treasureBoxDialog.show(propName, treasureImgUrl, treasureCount, platform, 1, adID, clickAdId);
+                treasureBoxDialog.setOnGetPropListener(new CompoundPropTipsDialog.OnGetPropListener() {
+                    @Override
+                    public void onGetProp() {
+                        //获取到道具 通过js回调
+                        webView.evaluateJavascript("javascript:window.sGameFunction.addProp(\"" + propId + "\"" + ",\"" + treasureCount + "\")", new ValueCallback<String>() {
+                            @Override
+                            public void onReceiveValue(String value) {
+                                //获取返回值，如果存在
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
 
     /**
      * 调起插屏广告弹窗
@@ -633,6 +974,7 @@ public class SdkMainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         //todo 点击查看分数
+                        EventUtil.get().addEvent("点击「游戏结束点击查看分数」按钮");
                         dialog.dismiss();
                         webView.evaluateJavascript("javascript:window.sGameFunction.toEndLayer()", new ValueCallback<String>() {
                             @Override
@@ -707,8 +1049,7 @@ public class SdkMainActivity extends AppCompatActivity {
     }
 
 
-    @Override
-    public void onBackPressed() {
+    public void onBackPressed(boolean isIcon) {
         if (exitNum == 0) {
             //播放激励视频
             exitNum++;
@@ -743,6 +1084,9 @@ public class SdkMainActivity extends AppCompatActivity {
                 });
             }
         } else {
+            if (!isIcon) {
+                EventUtil.get().addEvent("点击「物理键退出」按钮");
+            }
             super.onBackPressed();
         }
     }

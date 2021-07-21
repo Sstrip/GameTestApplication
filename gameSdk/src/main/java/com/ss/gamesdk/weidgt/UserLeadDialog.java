@@ -44,7 +44,7 @@ public class UserLeadDialog extends Dialog {
 
 
     public UserLeadDialog(@NonNull Context context) {
-        super(context,R.style.BaseDialog);
+        super(context, R.style.BaseDialog);
         initView(context);
     }
 
@@ -64,6 +64,12 @@ public class UserLeadDialog extends Dialog {
         ivGif = content.findViewById(R.id.iv_gif);
         ivClose = content.findViewById(R.id.iv_close);
         flAdContent = content.findViewById(R.id.fl_ad);
+        flAdContent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+            }
+        });
     }
 
     /**
@@ -81,7 +87,7 @@ public class UserLeadDialog extends Dialog {
         if (plame == -1 || style == -1 || TextUtils.isEmpty(adId)) {
 
         } else {
-            AdUtils.getInstance(getContext()).loadGdtNativeExpressAd(getContext(),282, adId, flAdContent);
+            AdUtils.getInstance(getContext()).loadGdtNativeExpressAd(getContext(), 282, adId, flAdContent);
 //            AdUtils.getInstance(getContext()).loadGdtNativeExpressAd(getContext(), "9011684347965344", rlAdContent);
         }
 

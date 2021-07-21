@@ -49,6 +49,9 @@ public class UnifiedInterstitialADUtil {
      * @param adID
      */
     public void loadAd(Activity activity, String adID) {
+        if (ad != null) {
+            ad.destroy();
+        }
         ad = new UnifiedInterstitialAD(activity, adID, new UnifiedInterstitialADListener() {
             @Override
             public void onADReceive() {

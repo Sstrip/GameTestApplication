@@ -18,11 +18,13 @@ import com.ss.gamesdk.R;
 import com.ss.gamesdk.base.GameSdk;
 import com.ss.gamesdk.bean.AdConfigInfo;
 import com.ss.gamesdk.bean.ApiResultData;
+import com.ss.gamesdk.bean.RewardInfo;
 import com.ss.gamesdk.bean.Task;
 import com.ss.gamesdk.http.NetApi;
 import com.ss.gamesdk.utils.AdUtils;
 import com.ss.gamesdk.utils.RewardVideoUtils;
 import com.ss.gamesdk.utils.UserTimeUtil;
+import com.ss.gamesdk.weidgt.RedPackageGetDialog;
 
 import java.util.List;
 
@@ -56,13 +58,32 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHold> 
      * 当前activity
      */
     private Activity activity;
+    /**
+     * 是否可领取
+     */
+    private boolean isGetReward = true;
 
 
     public TaskAdapter(List<Task> list, Context context, Activity activity) {
         this.list = list;
         this.context = context;
         this.activity = activity;
+
     }
+
+    /**
+     * 添加倒计时回调
+     */
+    private void addTimeCutDownCallBack() {
+        UserTimeUtil.getInstance().addTimeCallBack(GameSdk.getInstance().getGrowingTaskTimeSpace() * 1000, new UserTimeUtil.TimeCallBack() {
+            @Override
+            public void onCall() {
+                UserTimeUtil.getInstance().removeTimeCallBack(this);
+                isGetReward = true;
+            }
+        });
+    }
+
 
     @NonNull
     @Override
@@ -116,10 +137,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHold> 
                         return;
                     }
                     //TODO 校验其他时长任务是否领取完成
-                    boolean hasFinishAll = checkTask(task);
-                    if (!hasFinishAll) {
+                    if (!isGetReward) {
                         //有未完成的任务.提示完成
-                        Toast.makeText(context, "请先领取之前的奖励.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "还需等待" + GameSdk.getInstance().getGrowingTaskTimeSpace() / 60 + "分钟才可领取", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    isGetReward = false;
+                    if (task.getAdConfig() == null) {
+                        getAward();
                         return;
                     }
                     //TODO 需要先看激励视频广告
@@ -180,15 +205,19 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHold> 
                     false)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Action1<ApiResultData<String>>() {
+                    .subscribe(new Action1<ApiResultData<RewardInfo>>() {
                         @Override
-                        public void call(ApiResultData<String> stringApiResultData) {
+                        public void call(ApiResultData<RewardInfo> stringApiResultData) {
                             //拉取到数据
                             if (stringApiResultData.status == 100) {
                                 //领取成功
                                 //finish为0标识领取奖励
                                 task.setFinish("2");
+//                                RedPackageGetDialog packageGetDialog = new RedPackageGetDialog(context);
+//                                //todo 红包弹窗 需要金币的数量和模板广告的id
+//                                packageGetDialog.show(String.valueOf(coin), GameSdk.getInstance().getRedBagVideoAdInfo().getBundleid());
                                 Toast.makeText(context, stringApiResultData.msg, Toast.LENGTH_SHORT).show();
+                                addTimeCutDownCallBack();
                             } else {
                                 Toast.makeText(context, stringApiResultData.msg, Toast.LENGTH_SHORT).show();
                             }
@@ -203,18 +232,18 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHold> 
         }
 
 
-        private boolean checkTask(Task currentTask) {
-            int index = list.indexOf(currentTask);
-            for (int i = 0; i < index; i++) {
-                Task task = list.get(i);
-                long taskTime = task.getOperationTime() * 60 * 1000;
-                boolean isGet = UserTimeUtil.getInstance().checkIfGet(taskTime);
-                if (!"2".equals(task.getFinish()) && isGet) {
-                    return false;
-                }
-            }
-            return true;
-        }
+//        private boolean checkTask(Task currentTask) {
+//            int index = list.indexOf(currentTask);
+//            for (int i = 0; i < index; i++) {
+//                Task task = list.get(i);
+//                long taskTime = task.getOperationTime() * 60 * 1000;
+//                boolean isGet = UserTimeUtil.getInstance().checkIfGet(taskTime);
+//                if (!"2".equals(task.getFinish()) && isGet) {
+//                    return false;
+//                }
+//            }
+//            return true;
+//        }
 
 
         /**
