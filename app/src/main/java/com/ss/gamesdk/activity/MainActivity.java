@@ -46,38 +46,40 @@ public class MainActivity extends AppCompatActivity {
         tvOaid = findViewById(R.id.tv_oaid);
         //点击跳转测试
         GameSdk.getInstance().init(MainActivity.this, "test", "test");
-        findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                GameSdk.getInstance().showGamePage(MainActivity.this);
-            }
-        });
-        GameSdk.getInstance().setOnCoverFinishListener(new GameSdk.OnCoverFinishListener() {
-            @Override
-            public void onFinish(boolean success) {
-                //回调兑换成功
-            }
-        });
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                tvOaid.setText(GameSdk.getInstance().getOAID());
-            }
-        }, 5000);
-        tvOaid.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                //长按复制到粘贴板
-                //获取剪贴板管理器
-                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                // 创建普通字符型ClipData
-                ClipData mClipData = ClipData.newPlainText("Label", GameSdk.getInstance().getOAID());
-                // 将ClipData内容放到系统剪贴板里。
-                cm.setPrimaryClip(mClipData);
-                Toast.makeText(MainActivity.this, "已复制到粘贴板", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        });
+        GameSdk.getInstance().showGamePage(MainActivity.this);
+        finish();
+//        findViewById(R.id.btn_test).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                GameSdk.getInstance().showGamePage(MainActivity.this);
+//            }
+//        });
+//        GameSdk.getInstance().setOnCoverFinishListener(new GameSdk.OnCoverFinishListener() {
+//            @Override
+//            public void onFinish(boolean success) {
+//                //回调兑换成功
+//            }
+//        });
+//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                tvOaid.setText(GameSdk.getInstance().getOAID());
+//            }
+//        }, 5000);
+//        tvOaid.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                //长按复制到粘贴板
+//                //获取剪贴板管理器
+//                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+//                // 创建普通字符型ClipData
+//                ClipData mClipData = ClipData.newPlainText("Label", GameSdk.getInstance().getOAID());
+//                // 将ClipData内容放到系统剪贴板里。
+//                cm.setPrimaryClip(mClipData);
+//                Toast.makeText(MainActivity.this, "已复制到粘贴板", Toast.LENGTH_SHORT).show();
+//                return false;
+//            }
+//        });
     }
 
     /**

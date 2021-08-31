@@ -56,6 +56,7 @@ public class BannerAdUtil {
 //                if (DownloadConfirmHelper.USE_CUSTOM_DIALOG) {
 //                    bv.setDownloadConfirmListener(DownloadConfirmHelper.DOWNLOAD_CONFIRM_LISTENER);
 //                }
+                Log.e("打印广点通广告加载正常", "&*&(*&(*(*(");
             }
 
             @Override

@@ -9,6 +9,7 @@
         android:layout_width="221dp"
         android:layout_height="276dp"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
         android:background="@mipmap/bg_dialog_doubel_hit_red_package">
 
         <ImageView
@@ -61,6 +62,7 @@
         android:id="@+id/lin_get_coin"
         android:layout_width="221dp"
         android:layout_height="276dp"
+        android:layout_marginTop="30dp"
         android:layout_centerHorizontal="true"
         android:background="@mipmap/bg_dialog_doubel_hit_red_package_get"
         android:orientation="vertical"
@@ -109,9 +111,7 @@
         android:id="@+id/iv_close"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_marginRight="-20dp"
-        android:layout_marginTop="-20dp"
-         android:layout_alignRight="@+id/rl_red_package"
+        android:layout_alignRight="@+id/rl_red_package"
         android:background="@drawable/bg_dialog_close_no_time"
         android:gravity="center"
         android:text="3"

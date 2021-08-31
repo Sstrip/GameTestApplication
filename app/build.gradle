@@ -53,11 +53,13 @@ dependencies {
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support:recyclerview-v7:28.0.0'
     implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation project(path: ':gameSdk')
-//    implementation  files('libs\\gamesdklibrary.1.0.0.aar')
+//    implementation project(path: ':gameSdk')
+    implementation  files('libs\\gamesdklibrary.1.0.0.aar')
     implementation  files('libs\\GDTSDK.tbsNormal.4.351.1221.aar')
     implementation  files('libs\\oaid_sdk_1.0.25.aar')
     implementation  files('libs\\windAd-3.0.1.aar')
+    implementation files('libs\\android-query-full.0.26.7.jar')
+    implementation files('libs\\SaaS_AppAnalytics_Android_SDK_V4.0.62.jar')
     implementation 'com.squareup.okhttp3:okhttp:4.2.1'
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'

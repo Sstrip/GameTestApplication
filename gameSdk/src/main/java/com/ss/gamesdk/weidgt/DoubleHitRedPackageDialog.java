@@ -228,7 +228,7 @@ public class DoubleHitRedPackageDialog extends Dialog {
      */
     private void showGetCoinDialog() {
         linGetCoin.setVisibility(View.VISIBLE);
-        rlRedPackage.setVisibility(View.GONE);
+        rlRedPackage.setVisibility(View.INVISIBLE);
         tvGetCoinTips.setText(randomCoinTips);
         tvGetCoin.setOnClickListener(new View.OnClickListener() {
             @Override

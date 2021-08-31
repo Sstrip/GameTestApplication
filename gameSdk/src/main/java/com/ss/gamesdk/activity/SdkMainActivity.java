@@ -334,6 +334,7 @@ public class SdkMainActivity extends AppCompatActivity {
                     canClickLocalRedPackage = false;
                     EventUtil.get().addEvent("点击「红包」按钮");
                     showRewardVideoAd(GameSdk.getInstance().getLocalRedPackageAdInfo(), true);
+                    startLocalRedPackageCutDownTime();
                 } else {
                     Toast.makeText(SdkMainActivity.this, "红包倒计时中,请等待倒计时结束", Toast.LENGTH_SHORT).show();
                 }
@@ -511,7 +512,6 @@ public class SdkMainActivity extends AppCompatActivity {
                                 Toast.makeText(SdkMainActivity.this, stringApiResultData.msg, Toast.LENGTH_SHORT).show();
                                 //todo  重置倒计时
 //                                localCutDownTime = Integer.parseInt(GameSdk.getInstance().getLocalRedPackageAdInfo().getShieldAdTime());
-                                startLocalRedPackageCutDownTime();
                                 showGetRewardCoinGif();
                             } else {
                                 Toast.makeText(SdkMainActivity.this, stringApiResultData.msg, Toast.LENGTH_SHORT).show();
@@ -762,7 +762,7 @@ public class SdkMainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 CompoundPropTipsDialog dialog = new CompoundPropTipsDialog(SdkMainActivity.this);
-                dialog.show(propName,propImgUrl, platform, 1, adID);
+                dialog.show(propName, propImgUrl, platform, 1, adID);
                 dialog.setOnGetPropListener(new CompoundPropTipsDialog.OnGetPropListener() {
                     @Override
                     public void onGetProp() {
@@ -825,7 +825,7 @@ public class SdkMainActivity extends AppCompatActivity {
     @JavascriptInterface
     public void showTreasureBoxDialog(String propName, String treasureImgUrl, String propId, String treasureCount, String adInfo, String clickAdId) {
         //宝箱弹窗
-        Log.e("打印宝箱弹窗", "showTreasureBoxDialog->" + treasureImgUrl + "-proid->" + propId + "-treasureCount->" + treasureCount + "-clickAdId->" + clickAdId);
+        Log.e("打印宝箱弹窗", "showTreasureBoxDialog->" + treasureImgUrl + "-proid->" + propId + "-treasureCount->" + treasureCount +"adInfo->"+adInfo+ "-clickAdId->" + clickAdId);
         List<AdRewardVideoInfo> tempInfos = new Gson().fromJson(adInfo, new TypeToken<List<AdRewardVideoInfo>>() {
         }.getType());
         AdRewardVideoInfo info = tempInfos.get(currentBoxRewardAd);
@@ -1048,6 +1048,10 @@ public class SdkMainActivity extends AppCompatActivity {
         return TextUtils.isEmpty(newCookie) ? false : true;
     }
 
+    @Override
+    public void onBackPressed() {
+        onBackPressed(false);
+    }
 
     public void onBackPressed(boolean isIcon) {
         if (exitNum == 0) {

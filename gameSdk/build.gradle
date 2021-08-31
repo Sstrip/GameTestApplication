@@ -77,17 +77,17 @@ dependencies {
     compileOnly  files('libs\\GDTSDK.tbsNormal.4.351.1221.aar')
     compileOnly  files('libs\\oaid_sdk_1.0.25.aar')
     compileOnly  files('libs\\windAd-3.0.1.aar')
-    implementation files('libs\\android-query-full.0.26.7.jar')
-    implementation files('libs\\SaaS_AppAnalytics_Android_SDK_V4.0.62.jar')
+    compileOnly files('libs\\android-query-full.0.26.7.jar')
+    compileOnly files('libs\\SaaS_AppAnalytics_Android_SDK_V4.0.62.jar')
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.android.support:recyclerview-v7:28.0.0'
     implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.squareup.okhttp3:okhttp:4.2.1'
-    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    compileOnly 'com.squareup.okhttp3:okhttp:4.2.1'
+    compileOnly 'com.github.bumptech.glide:glide:4.9.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
-    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
-    implementation 'io.reactivex:rxandroid:1.2.1'
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'com.squareup.retrofit2:adapter-rxjava:2.4.0'
+    compileOnly 'com.squareup.retrofit2:retrofit:2.4.0'
+    compileOnly 'com.squareup.retrofit2:converter-gson:2.4.0'
+    compileOnly 'io.reactivex:rxandroid:1.2.1'
+    compileOnly 'com.google.code.gson:gson:2.8.5'
+    compileOnly 'com.squareup.retrofit2:adapter-rxjava:2.4.0'
 }

@@ -19,6 +19,5 @@ public class TestApplication extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
-
     }
 }
